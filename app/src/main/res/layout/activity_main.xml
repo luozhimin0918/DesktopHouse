@@ -7,6 +7,7 @@
     tools:context=".MainActivity">
     <LinearLayout
         android:orientation="vertical"
+        android:layout_margin="10dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <Button
@@ -17,6 +18,11 @@
         <Button
             android:id="@+id/forTrial"
             android:text="申请试用期"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/recordPaymentInfo"
+            android:text="收集支付信息"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
         <TextView

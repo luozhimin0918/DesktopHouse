@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     TextView textRespose;
     Button  getTariffInfo;
     Button forTrial;
+    Button recordPaymentInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
         textRespose = findViewById(R.id.textRespose);
         getTariffInfo=findViewById(R.id.getTariffInfo);
         forTrial=findViewById(R.id.forTrial);
+        recordPaymentInfo=findViewById(R.id.recordPaymentInfo);
         //创建一个请求队列
         requestQueue = Volley.newRequestQueue(getApplicationContext());
 
@@ -69,7 +71,12 @@ public class MainActivity extends AppCompatActivity {
                 getforTrial();
             }
         });
-
+        recordPaymentInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+//                getRecordPaymentInfo();
+            }
+        });
     }
 
     RequestQueue requestQueue;
@@ -208,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
                     String msgString = s.getString("msg");
                     Toast.makeText(getApplicationContext(),msgString,Toast.LENGTH_SHORT).show();
                     TariffInfoListJson tariffInfoListJson=JSON.parseObject(tariArrayOne.toString(),TariffInfoListJson.class);
-                    textRespose.setText(msgString+"套餐描述:"+tariffInfoListJson.getTariffDesc()+"\n"+
+                    textRespose.setText("套餐描述:"+tariffInfoListJson.getTariffDesc()+"\n"+
                             "套餐标签:"+tariffInfoListJson.getTariffTag()+"\n"+
                             "原价:"+tariffInfoListJson.getOriginalPrice()+"\n"+
                             "现价:"+tariffInfoListJson.getPresentPrice()+"\n"+

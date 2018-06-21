@@ -12,6 +12,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.socks.library.KLog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
         JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.POST, url,jsonObj, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject s) {
+                KLog.json("Main",s.toString());
                 textRespose.setText("我的返回："+s.toString());
             }
 

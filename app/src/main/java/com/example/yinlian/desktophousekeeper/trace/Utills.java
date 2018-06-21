@@ -1,13 +1,4 @@
-package com.example.yinlian.desktophousekeeper;
-
-import android.Manifest;
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.telephony.TelephonyManager;
-import android.widget.TextView;
+package com.example.yinlian.desktophousekeeper.trace;
 
 import com.alibaba.fastjson.JSON;
 import com.android.volley.AuthFailureError;
@@ -16,15 +7,9 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.example.yinlian.desktophousekeeper.model.AppInfoJSon;
 import com.example.yinlian.desktophousekeeper.model.DeviceInfoJSon;
-import com.example.yinlian.desktophousekeeper.trace.Utills;
 import com.socks.library.KLog;
-import com.ums.upos.sdk.exception.CallServiceException;
-import com.ums.upos.sdk.exception.SdkException;
-import com.ums.upos.sdk.system.BaseSystemManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,56 +17,33 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
-
-    TextView textRespose;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        textRespose = findViewById(R.id.textRespose);
-        //创建一个请求队列
-        requestQueue = Volley.newRequestQueue(getApplicationContext());
-        getTariffInfo();
-    }
-
-    RequestQueue requestQueue;
-
-    public void getTariffInfo() {
-        //创建一个请求
+/**
+ * Created by Luozhimin on 2018-06-21.9:42
+ */
+public class Utills {
+    public static String getTariffInfo(  RequestQueue requestQueue){
+        final String[] reqeutString = {null};
+//创建一个请求
 //        String url = "https://ynadi.kuaixun56.com/user/login";
-        String url = "http://500995bc.nat123.cc:12986/bmp/api/findTariffInfoList";
-//        String url="http://500995bc.nat123.cc:12986/bmp/api/getOrderInfo";//  /api/forTrial  api/recordPaymentInfo
+        String url="http://500995bc.nat123.cc:12986/bmp/api/findTariffInfoList";
+
 
         JSONObject jsonObj = new JSONObject();
         try {
-            jsonObj.put("reqDetail", "{\"tariffDescList\":\"默认套餐内容,默认套餐二\"}");
-            AppInfoJSon appInfoJSon = new AppInfoJSon();
+            jsonObj.put("reqDetail","{\"tariffDescList\":\"默认套餐内容,默认套餐二\"}");
+            AppInfoJSon appInfoJSon=new AppInfoJSon();
             appInfoJSon.setAppName("靓丽前台-银商版");
             appInfoJSon.setAppId("afd2baf088034179b4c98826b4d9fcca");
             appInfoJSon.setAppPackName("com.shboka.beautyorderums");
             appInfoJSon.setAppVersionCode("3.0.6.1");
             KLog.json("appInfoJson", JSON.toJSONString(appInfoJSon));
-            jsonObj.put("appInfo", JSON.toJSONString(appInfoJSon));
-            jsonObj.put("interType", "BMP-QUERY");
-            jsonObj.put("version", "001");
-            DeviceInfoJSon deviceInfoJSon = new DeviceInfoJSon();
+            jsonObj.put("appInfo",JSON.toJSONString(appInfoJSon));
+            jsonObj.put("interType","BMP-QUERY");
+            jsonObj.put("version","001");
+            DeviceInfoJSon deviceInfoJSon=new DeviceInfoJSon();
             deviceInfoJSon.setProdCode("19");
             deviceInfoJSon.setFirmCode("109");
             deviceInfoJSon.setDeviceSn("0820043480");
-            BaseSystemManager baseSystemManager = BaseSystemManager.getInstance();
-            String deviceInfoMap = "hhhh";
-            try {
-                deviceInfoMap = baseSystemManager.readSN();
-
-
-            } catch (SdkException e) {
-                e.printStackTrace();
-            } catch (CallServiceException e) {
-                e.printStackTrace();
-            }
-            KLog.d("deviceInfo",deviceInfoMap);
             KLog.json("deviceInfo",JSON.toJSONString(deviceInfoJSon));
             jsonObj.put("deviceInfo",JSON.toJSONString(deviceInfoJSon));
             jsonObj.put("mac","ums2018");
@@ -92,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(JSONObject s) {
                 KLog.json("Main",s.toString());
-               textRespose.setText(s.toString());
+             reqeutString[0] =s.toString();
             }
 
         }, new Response.ErrorListener() {
@@ -100,14 +62,14 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onErrorResponse(VolleyError volleyError) {
-                textRespose.setText("加载错误"+volleyError);
+                reqeutString[0]="加载错误"+volleyError;
             }
         }){
-            /*@Override
+            @Override
             protected Map<String, String> getParams() throws AuthFailureError {
 
                 Map<String,String> map = new HashMap<>();
-              *//*  map.put("reqDetail","{\"tariffDescList\":\"默认套餐内容,默认套餐二\"}");//传入参数
+              /*  map.put("reqDetail","{\"tariffDescList\":\"默认套餐内容,默认套餐二\"}");//传入参数
                map.put("appInfo","{ " +
                         " \"appName\": \"靓丽前台-银商版\", " +
                            " \"appId\": \"afd2baf088034179b4c98826b4d9fcca\", " +
@@ -122,9 +84,9 @@ public class MainActivity extends AppCompatActivity {
                            " \"deviceSn\": \"0820043480\" " +
                            " }");
                    map.put("mac","ums2018");
-*//*
+*/
                 return map;
-            }*/
+            }
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String> headers = new HashMap<>();
@@ -136,5 +98,6 @@ public class MainActivity extends AppCompatActivity {
 
         //将post请求添加到队列中
         requestQueue.add(stringRequest);
+        return reqeutString[0];
     }
 }

@@ -119,11 +119,20 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject jsonObject=s.getJSONObject("data");
                     JSONArray array =jsonObject.getJSONArray("tariffInfoList");
                     JSONObject tariArrayOne = array.getJSONObject(0);
-
-                    TariffInfoListJson tariffInfoListJson=JSON.parseObject(tariArrayOne.toString(),TariffInfoListJson.class);
+                     TariffInfoListJson tariffInfoListJson=JSON.parseObject(tariArrayOne.toString(),TariffInfoListJson.class);
                     textRespose.setText(tariffInfoListJson.getTariffDesc());
+                    String msgString = s.getString("msg");
+                    Toast.makeText(getApplicationContext(),msgString,Toast.LENGTH_SHORT).show();
+
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    try {
+                        String msgString = s.getString("msg");
+                        textRespose.setText(msgString);
+                    } catch (JSONException e1) {
+                        e1.printStackTrace();
+                    }
+
                 }
 
             }

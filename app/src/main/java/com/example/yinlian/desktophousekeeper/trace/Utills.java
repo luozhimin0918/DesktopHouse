@@ -1,5 +1,8 @@
 package com.example.yinlian.desktophousekeeper.trace;
 
+import android.app.ActivityManager;
+import android.content.Context;
+
 import com.alibaba.fastjson.JSON;
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -15,6 +18,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -99,5 +103,25 @@ public class Utills {
         //将post请求添加到队列中
         requestQueue.add(stringRequest);
         return reqeutString[0];
+    }
+
+
+    /**
+     * 获取当前应用程序的包名
+     * @param context 上下文对象
+     * @return 返回包名
+     */
+    public static String getAppProcessName(Context context) {
+        //当前应用pid
+        int pid = android.os.Process.myPid();
+        //任务管理类
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        //遍历所有应用
+        List<ActivityManager.RunningAppProcessInfo> infos = manager.getRunningAppProcesses();
+        for (ActivityManager.RunningAppProcessInfo info : infos) {
+            if (info.pid == pid)//得到当前应用
+                return info.processName;//返回包名
+        }
+        return "";
     }
 }

@@ -34,6 +34,7 @@ import com.socks.library.KLog;
 import com.ums.upos.sdk.exception.CallServiceException;
 import com.ums.upos.sdk.exception.SdkException;
 import com.ums.upos.sdk.system.BaseSystemManager;
+import com.ums.upos.sdk.system.OnServiceStatusListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
     Button  getTariffInfo;
     Button forTrial;
     Button recordPaymentInfo;
-
+    BaseSystemManager baseSystemManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,6 +78,21 @@ public class MainActivity extends AppCompatActivity {
 //                getRecordPaymentInfo();
             }
         });
+       baseSystemManager = BaseSystemManager.getInstance();
+
+        try {
+            baseSystemManager.deviceServiceLogin(getApplicationContext(), null, "99999999", new OnServiceStatusListener() {
+                @Override
+                public void onStatus(int i) {
+
+
+                    KLog.d("onStatus",""+i);
+                }
+            });
+
+        } catch (SdkException e) {
+            e.printStackTrace();
+        }
     }
 
     RequestQueue requestQueue;
@@ -176,6 +192,7 @@ public class MainActivity extends AppCompatActivity {
             AppInfoJSon appInfoJSon = new AppInfoJSon();
             appInfoJSon.setAppName("靓丽前台-银商版");
             appInfoJSon.setAppId("afd2baf088034179b4c98826b4d9fcca");
+           String appPackname= Utills.getAppProcessName(getApplicationContext());//获取包名
             appInfoJSon.setAppPackName("com.shboka.beautyorderums");
             appInfoJSon.setAppVersionCode("3.0.6.1");
             KLog.json("appInfoJson", JSON.toJSONString(appInfoJSon));
@@ -183,21 +200,22 @@ public class MainActivity extends AppCompatActivity {
             jsonObj.put("interType", "BMP-QUERY");
             jsonObj.put("version", "001");
             DeviceInfoJSon deviceInfoJSon = new DeviceInfoJSon();
-            deviceInfoJSon.setProdCode("19");
-            deviceInfoJSon.setFirmCode("109");
-            deviceInfoJSon.setDeviceSn("0820043480");
-            BaseSystemManager baseSystemManager = BaseSystemManager.getInstance();
-            String deviceInfoMap = "hhhh";
-            try {
-                deviceInfoMap = baseSystemManager.readSN();
+            deviceInfoJSon.setProdCode("19");//产品型号
+            deviceInfoJSon.setFirmCode("109");//厂商代码
 
+             //获取sn
+                String deviceInfoMap  = null;
+                try {
+                    deviceInfoMap = baseSystemManager.readSN();
+                    deviceInfoMap=baseSystemManager.getDeviceInfo().toString();
+                } catch (SdkException e) {
+                    e.printStackTrace();
+                } catch (CallServiceException e) {
+                    e.printStackTrace();
+                }
+                KLog.d("deviceInfo",deviceInfoMap);
+            deviceInfoJSon.setDeviceSn("0820043480");//终端硬件序列号
 
-            } catch (SdkException e) {
-                e.printStackTrace();
-            } catch (CallServiceException e) {
-                e.printStackTrace();
-            }
-            KLog.d("deviceInfo",deviceInfoMap);
             KLog.json("deviceInfo",JSON.toJSONString(deviceInfoJSon));
             jsonObj.put("deviceInfo",JSON.toJSONString(deviceInfoJSon));
             jsonObj.put("mac","ums2018");

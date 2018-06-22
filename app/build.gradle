@@ -36,4 +36,5 @@ dependencies {
     implementation files('libs/sdk4upos_20180411_mix.jar')
     implementation 'com.jakewharton:butterknife:8.0.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.0.0'
+    implementation files('libs/tariff.jar')
 }

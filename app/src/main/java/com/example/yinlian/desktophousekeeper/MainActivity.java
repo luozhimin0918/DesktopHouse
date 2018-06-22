@@ -29,6 +29,8 @@ import com.android.volley.toolbox.Volley;
 import com.example.yinlian.desktophousekeeper.model.AppInfoJSon;
 import com.example.yinlian.desktophousekeeper.model.DataRespRecordPay;
 import com.example.yinlian.desktophousekeeper.model.DeviceInfoJSon;
+import com.example.yinlian.desktophousekeeper.model.OrderInfoRespJson;
+import com.example.yinlian.desktophousekeeper.model.OrderInfoRespJsonDatail;
 import com.example.yinlian.desktophousekeeper.model.ReqDetailJson;
 import com.example.yinlian.desktophousekeeper.model.TariffInfoListJson;
 import com.example.yinlian.desktophousekeeper.trace.Utills;
@@ -42,6 +44,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
@@ -50,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     Button  getTariffInfo;
     Button forTrial;
     Button recordPaymentInfo;
+    Button getOrderInfo;
     BaseSystemManager baseSystemManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
         getTariffInfo=findViewById(R.id.getTariffInfo);
         forTrial=findViewById(R.id.forTrial);
         recordPaymentInfo=findViewById(R.id.recordPaymentInfo);
+        getOrderInfo=findViewById(R.id.getOrderInfo);
         //创建一个请求队列
         requestQueue = Volley.newRequestQueue(getApplicationContext());
 
@@ -80,6 +85,12 @@ public class MainActivity extends AppCompatActivity {
                 getRecordPaymentInfo();
             }
         });
+        getOrderInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getOrderInfo();
+            }
+        });
        baseSystemManager = BaseSystemManager.getInstance();
 
         try {
@@ -98,6 +109,110 @@ public class MainActivity extends AppCompatActivity {
     }
 
     RequestQueue requestQueue;
+    public void getOrderInfo() {
+        //创建一个请求
+        String url = "http://500995bc.nat123.cc:12986/bmp/api/getOrderInfo";
+        JSONObject jsonObj = new JSONObject();
+        try {
+            ReqDetailJson reqDetailJson=new ReqDetailJson();
+            //"{\"tariffDescList\":\"默认套餐内容,默认套餐二\",\"tariffDesc\":\"默认套餐内容\"}"
+            reqDetailJson.setTariffDescList("默认套餐内容,默认套餐二");
+            jsonObj.put("reqDetail",JSON.toJSONString(reqDetailJson));
+            AppInfoJSon appInfoJSon = new AppInfoJSon();
+            appInfoJSon.setAppName("靓丽前台-银商版");
+            appInfoJSon.setAppId("afd2baf088034179b4c98826b4d9fcca");
+            String appPackname= Utills.getAppProcessName(getApplicationContext());//获取包名
+            appInfoJSon.setAppPackName("com.shboka.beautyorderums");
+            appInfoJSon.setAppVersionCode("3.0.6.1");
+            KLog.json("appInfoJson", JSON.toJSONString(appInfoJSon));
+            jsonObj.put("appInfo", JSON.toJSONString(appInfoJSon));
+            jsonObj.put("interType", "BMP-QUERY");
+            jsonObj.put("version", "001");
+            DeviceInfoJSon deviceInfoJSon = new DeviceInfoJSon();
+            deviceInfoJSon.setProdCode("19");//产品型号
+            deviceInfoJSon.setFirmCode("109");//厂商代码
+
+            //获取sn
+            String deviceInfoMap  = null;
+            try {
+                deviceInfoMap = baseSystemManager.readSN();
+                deviceInfoMap=baseSystemManager.getDeviceInfo().toString();
+            } catch (SdkException e) {
+                e.printStackTrace();
+            } catch (CallServiceException e) {
+                e.printStackTrace();
+            }
+            KLog.d("deviceInfo",deviceInfoMap);
+            deviceInfoJSon.setDeviceSn("0820043480");//终端硬件序列号
+
+            KLog.json("deviceInfo",JSON.toJSONString(deviceInfoJSon));
+            jsonObj.put("deviceInfo",JSON.toJSONString(deviceInfoJSon));
+            jsonObj.put("mac","ums2018");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.POST, url,jsonObj, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject s) {
+                KLog.json("MainFour",s.toString());
+                String msgString = null;
+                try {
+                    JSONObject jsonObject=s.getJSONObject("data");
+                    OrderInfoRespJson orderInfoRespJson =JSON.parseObject(jsonObject.toString(),OrderInfoRespJson.class);
+                   String ordeRespStr = orderInfoRespJson.getRespDetail();
+                   List<OrderInfoRespJsonDatail> respRecordPay=JSON.parseArray(ordeRespStr,OrderInfoRespJsonDatail.class);
+                    OrderInfoRespJsonDatail  orderInfoRespJsonDatail=  respRecordPay.get(0);
+
+                  textRespose.setText(
+                            "endTime:"+orderInfoRespJsonDatail.getEndTime()+"\n"+
+                            "lastPaymentPrice:"+orderInfoRespJsonDatail.getLastPaymentPrice()+"\n"+
+                            "lastPaymentTerm:"+orderInfoRespJsonDatail.getLastPaymentTerm()+"\n"+
+
+                            "orderStatus:"+orderInfoRespJsonDatail.getOrderStatus()+"\n"+
+                            "remainingDays:"+orderInfoRespJsonDatail.getRemainingDays()+"\n"+
+                            "startTime:"+orderInfoRespJsonDatail.getStartTime()+"\n"+
+                            "tariffDesc:"+orderInfoRespJsonDatail.getTariffDesc()+"\n"+
+                            "totalPrice:"+orderInfoRespJsonDatail.getTotalPrice()
+
+                    );
+
+                    msgString = s.getString("msg");
+                    Toast.makeText(getApplicationContext(),msgString,Toast.LENGTH_SHORT).show();
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+
+                    try {
+                        msgString = s.getString("msg");
+                    } catch (JSONException e1) {
+                        e1.printStackTrace();
+                    }
+                    textRespose.setText(msgString);
+                    Toast.makeText(getApplicationContext(),msgString,Toast.LENGTH_SHORT).show();
+                }
+
+            }
+
+        }, new Response.ErrorListener() {
+
+
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                textRespose.setText("加载错误"+volleyError);
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<>();
+                headers.put("Accept", "application/json");
+                headers.put("Content-Type", "application/json; charset=UTF-8");
+                return headers;
+            }
+        };
+
+        //将post请求添加到队列中
+        requestQueue.add(stringRequest);
+    }
     public void getRecordPaymentInfo() {
         //创建一个请求
         String url = "http://500995bc.nat123.cc:12986/bmp/api/recordPaymentInfo";

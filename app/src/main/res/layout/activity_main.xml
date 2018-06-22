@@ -25,6 +25,11 @@
             android:text="收集支付信息"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/getOrderInfo"
+            android:text="订单信息查询"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
         <TextView
             android:id="@+id/textRespose"
             android:layout_width="wrap_content"

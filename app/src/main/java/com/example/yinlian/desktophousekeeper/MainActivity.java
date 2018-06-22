@@ -102,10 +102,11 @@ public class MainActivity extends AppCompatActivity {
         String url = "http://500995bc.nat123.cc:12986/bmp/api/forTrial";
         JSONObject jsonObj = new JSONObject();
         try {
-            jsonObj.put("reqDetail", "{\"tariffDescList\":\"默认套餐内容,默认套餐二\"}");
+            jsonObj.put("reqDetail", "{\"tariffDescList\":\"默认套餐内容,默认套餐二\",\"tariffDesc\":\"默认套餐内容\"}");
             AppInfoJSon appInfoJSon = new AppInfoJSon();
             appInfoJSon.setAppName("靓丽前台-银商版");
             appInfoJSon.setAppId("afd2baf088034179b4c98826b4d9fcca");
+            String appPackname= Utills.getAppProcessName(getApplicationContext());//获取包名
             appInfoJSon.setAppPackName("com.shboka.beautyorderums");
             appInfoJSon.setAppVersionCode("3.0.6.1");
             KLog.json("appInfoJson", JSON.toJSONString(appInfoJSon));
@@ -113,21 +114,22 @@ public class MainActivity extends AppCompatActivity {
             jsonObj.put("interType", "BMP-QUERY");
             jsonObj.put("version", "001");
             DeviceInfoJSon deviceInfoJSon = new DeviceInfoJSon();
-            deviceInfoJSon.setProdCode("19");
-            deviceInfoJSon.setFirmCode("109");
-            deviceInfoJSon.setDeviceSn("0820043480");
-            BaseSystemManager baseSystemManager = BaseSystemManager.getInstance();
-            String deviceInfoMap = "hhhh";
+            deviceInfoJSon.setProdCode("19");//产品型号
+            deviceInfoJSon.setFirmCode("109");//厂商代码
+
+            //获取sn
+            String deviceInfoMap  = null;
             try {
                 deviceInfoMap = baseSystemManager.readSN();
-
-
+                deviceInfoMap=baseSystemManager.getDeviceInfo().toString();
             } catch (SdkException e) {
                 e.printStackTrace();
             } catch (CallServiceException e) {
                 e.printStackTrace();
             }
             KLog.d("deviceInfo",deviceInfoMap);
+            deviceInfoJSon.setDeviceSn("0820043480");//终端硬件序列号
+
             KLog.json("deviceInfo",JSON.toJSONString(deviceInfoJSon));
             jsonObj.put("deviceInfo",JSON.toJSONString(deviceInfoJSon));
             jsonObj.put("mac","ums2018");
@@ -137,25 +139,38 @@ public class MainActivity extends AppCompatActivity {
         JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.POST, url,jsonObj, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject s) {
-                KLog.json("Main",s.toString());
+                KLog.json("MainTwo",s.toString());
+                String msgString = null;
                 try {
                     JSONObject jsonObject=s.getJSONObject("data");
-                    JSONArray array =jsonObject.getJSONArray("tariffInfoList");
-                    JSONObject tariArrayOne = array.getJSONObject(0);
-                     TariffInfoListJson tariffInfoListJson=JSON.parseObject(tariArrayOne.toString(),TariffInfoListJson.class);
-                    textRespose.setText(tariffInfoListJson.getTariffDesc());
-                    String msgString = s.getString("msg");
+
+                        JSONArray array =jsonObject.getJSONArray("tariffInfoList");
+                        JSONObject tariArrayOne = array.getJSONObject(0);
+
+                        TariffInfoListJson tariffInfoListJson=JSON.parseObject(tariArrayOne.toString(),TariffInfoListJson.class);
+                        textRespose.setText("套餐描述:"+tariffInfoListJson.getTariffDesc()+"\n"+
+                                "套餐标签:"+tariffInfoListJson.getTariffTag()+"\n"+
+                                "原价:"+tariffInfoListJson.getOriginalPrice()+"\n"+
+                                "现价:"+tariffInfoListJson.getPresentPrice()+"\n"+
+                                "折扣:"+tariffInfoListJson.getDiscount()+"\n"+
+                                "服务期:"+tariffInfoListJson.getServiceTerm()+"\n"+
+                                "试用期:"+tariffInfoListJson.getProbation()+"\n"+
+                                "是否为默认套餐:"+tariffInfoListJson.getIsDefaulted()
+                        );
+
+                    msgString = s.getString("msg");
                     Toast.makeText(getApplicationContext(),msgString,Toast.LENGTH_SHORT).show();
 
                 } catch (JSONException e) {
                     e.printStackTrace();
+
                     try {
-                        String msgString = s.getString("msg");
-                        textRespose.setText(msgString);
+                        msgString = s.getString("msg");
                     } catch (JSONException e1) {
                         e1.printStackTrace();
                     }
-
+                    textRespose.setText(msgString);
+                    Toast.makeText(getApplicationContext(),msgString,Toast.LENGTH_SHORT).show();
                 }
 
             }

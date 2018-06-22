@@ -27,7 +27,9 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.yinlian.desktophousekeeper.model.AppInfoJSon;
+import com.example.yinlian.desktophousekeeper.model.DataRespRecordPay;
 import com.example.yinlian.desktophousekeeper.model.DeviceInfoJSon;
+import com.example.yinlian.desktophousekeeper.model.ReqDetailJson;
 import com.example.yinlian.desktophousekeeper.model.TariffInfoListJson;
 import com.example.yinlian.desktophousekeeper.trace.Utills;
 import com.socks.library.KLog;
@@ -75,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         recordPaymentInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                getRecordPaymentInfo();
+                getRecordPaymentInfo();
             }
         });
        baseSystemManager = BaseSystemManager.getInstance();
@@ -96,7 +98,115 @@ public class MainActivity extends AppCompatActivity {
     }
 
     RequestQueue requestQueue;
+    public void getRecordPaymentInfo() {
+        //创建一个请求
+        String url = "http://500995bc.nat123.cc:12986/bmp/api/recordPaymentInfo";
+        JSONObject jsonObj = new JSONObject();
+        try {
+            ReqDetailJson reqDetailJson=new ReqDetailJson();
+            //"{\"tariffDescList\":\"默认套餐内容,默认套餐二\",\"tariffDesc\":\"默认套餐内容\"}"
+            reqDetailJson.setTariffDesc("默认套餐内容");
+            reqDetailJson.setPaymentPrice("100");
+            reqDetailJson.setPaymentTerm("45");
+            reqDetailJson.setPurchaseQuantity("30");
+            jsonObj.put("reqDetail",JSON.toJSONString(reqDetailJson));
+            AppInfoJSon appInfoJSon = new AppInfoJSon();
+            appInfoJSon.setAppName("靓丽前台-银商版");
+            appInfoJSon.setAppId("afd2baf088034179b4c98826b4d9fcca");
+            String appPackname= Utills.getAppProcessName(getApplicationContext());//获取包名
+            appInfoJSon.setAppPackName("com.shboka.beautyorderums");
+            appInfoJSon.setAppVersionCode("3.0.6.1");
+            KLog.json("appInfoJson", JSON.toJSONString(appInfoJSon));
+            jsonObj.put("appInfo", JSON.toJSONString(appInfoJSon));
+            jsonObj.put("interType", "BMP-QUERY");
+            jsonObj.put("version", "001");
+            DeviceInfoJSon deviceInfoJSon = new DeviceInfoJSon();
+            deviceInfoJSon.setProdCode("19");//产品型号
+            deviceInfoJSon.setFirmCode("109");//厂商代码
 
+            //获取sn
+            String deviceInfoMap  = null;
+            try {
+                deviceInfoMap = baseSystemManager.readSN();
+                deviceInfoMap=baseSystemManager.getDeviceInfo().toString();
+            } catch (SdkException e) {
+                e.printStackTrace();
+            } catch (CallServiceException e) {
+                e.printStackTrace();
+            }
+            KLog.d("deviceInfo",deviceInfoMap);
+            deviceInfoJSon.setDeviceSn("0820043480");//终端硬件序列号
+
+            KLog.json("deviceInfo",JSON.toJSONString(deviceInfoJSon));
+            jsonObj.put("deviceInfo",JSON.toJSONString(deviceInfoJSon));
+            jsonObj.put("mac","ums2018");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.POST, url,jsonObj, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject s) {
+                KLog.json("MainThree",s.toString());
+                String msgString = null;
+                try {
+                    JSONObject jsonObject=s.getJSONObject("data");
+
+                    DataRespRecordPay respRecordPay=JSON.parseObject(jsonObject.toString(),DataRespRecordPay.class);
+                    textRespose.setText("ageId:"+respRecordPay.getAgeId()+"\n"+
+                            "appId:"+respRecordPay.getAppId()+"\n"+
+                            "apvId:"+respRecordPay.getApvId()+"\n"+
+                            "endTime:"+respRecordPay.getEndTime()+"\n"+
+                            "lastPaymentPrice:"+respRecordPay.getLastPaymentPrice()+"\n"+
+                            "lastPaymentTerm:"+respRecordPay.getLastPaymentTerm()+"\n"+
+
+                            "lastPaymentTime:"+respRecordPay.getLastPaymentTime()+"\n"+
+                            "orderStatus:"+respRecordPay.getOrderStatus()+"\n"+
+                            "posId:"+respRecordPay.getPosId()+"\n"+
+                            "remainingDays:"+respRecordPay.getRemainingDays()+"\n"+
+                            "startTime:"+respRecordPay.getStartTime()+"\n"+
+                            "tariffDesc:"+respRecordPay.getTariffDesc()+"\n"+
+                            "tariffTag:"+respRecordPay.getTariffTag()+"\n"+
+                            "totalPrice:"+respRecordPay.getTotalPrice()+"\n"+
+                            "totalTerm:"+respRecordPay.getTotalTerm()
+                    );
+
+                    msgString = s.getString("msg");
+                    Toast.makeText(getApplicationContext(),msgString,Toast.LENGTH_SHORT).show();
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+
+                    try {
+                        msgString = s.getString("msg");
+                    } catch (JSONException e1) {
+                        e1.printStackTrace();
+                    }
+                    textRespose.setText(msgString);
+                    Toast.makeText(getApplicationContext(),msgString,Toast.LENGTH_SHORT).show();
+                }
+
+            }
+
+        }, new Response.ErrorListener() {
+
+
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                textRespose.setText("加载错误"+volleyError);
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<>();
+                headers.put("Accept", "application/json");
+                headers.put("Content-Type", "application/json; charset=UTF-8");
+                return headers;
+            }
+        };
+
+        //将post请求添加到队列中
+        requestQueue.add(stringRequest);
+    }
     public void getforTrial() {
         //创建一个请求
         String url = "http://500995bc.nat123.cc:12986/bmp/api/forTrial";
